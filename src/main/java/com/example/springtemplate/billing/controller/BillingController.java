@@ -2,12 +2,9 @@ package com.example.springtemplate.billing.controller;
 
 import com.example.springtemplate.billing.dto.BillingDTO;
 import com.example.springtemplate.billing.service.BillingService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,8 +19,15 @@ public class BillingController {
     }
 
     @GetMapping
-    public List<BillingDTO> findAll() {
-        return billingService.findAll();
+    public ResponseEntity<?> findAll() {
+        List<BillingDTO> invoices = billingService.findAll();
+
+        if (invoices.isEmpty()) {
+            return ResponseEntity
+                    .ok("No Invoice generated till now. Please create an invoice.");
+        }
+
+        return ResponseEntity.ok(invoices);
     }
 
     @GetMapping("/{invoiceNumber}")
@@ -33,7 +37,25 @@ public class BillingController {
 
     @PostMapping
     public BillingDTO create(@RequestBody BillingDTO dto) {
-        return billingService.create(dto);
+        return billingService.create(dto,"");
+    }
+
+    @PutMapping("/{invoiceNumber}")
+    public BillingDTO updateByInvoiceNumber(@RequestBody BillingDTO dto , @PathVariable String invoiceNumber){
+        return billingService.create(dto ,invoiceNumber) ;
+    }
+
+    @DeleteMapping("/{invoiceNumber}")
+    public ResponseEntity<?> deleteByInvoiceNumber(@PathVariable String invoiceNumber) {
+        BillingDTO deletedBilling = billingService.deleteByInvoiceNumber(invoiceNumber);
+        return ResponseEntity.ok("Deleted Successfully");
+    }
+
+    @GetMapping("/paging")
+    public Page<BillingDTO> paging(@RequestParam (defaultValue = "0") int page ,@RequestParam(defaultValue = "1")int size){
+
+        return billingService.getPagingValues(page ,size);
+
     }
 
 
